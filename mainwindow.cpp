@@ -22,8 +22,25 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Rows indexing start at 1 (Sorry,But it's not the famous zero-based indexing :( )
     this->rowIndex = 1;
+    // set locale to english, so we get english month names:
+    ui->customPlot->setLocale(QLocale(QLocale::English, QLocale::UnitedKingdom));
+    // seconds of current time, we'll use it as starting point in time for data:
+    ui->customPlot->addGraph();
+    ui->customPlot->graph()->setLineStyle(QCPGraph::lsLine);
 
+    // configure bottom axis text labels:
+    ui->customPlot->xAxis->setTicker(textTicker);
+    // set a more compact font size for bottom and left axis tick labels:
+    ui-> customPlot->xAxis->setTickLabelFont(QFont(QFont().family(), 8));
+    ui-> customPlot->yAxis->setTickLabelFont(QFont(QFont().family(), 8));
+    // set axis labels:
+    ui-> customPlot->xAxis->setLabel("Time");
+    ui-> customPlot->yAxis->setLabel("Random values");
+    // set axis ranges to show all data:
+    ui->customPlot->xAxis->setRange(this->rowIndex, this->rowIndex+10);
+    ui->customPlot->yAxis->setRange(0, 1000);
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -106,8 +123,23 @@ void MainWindow::onSocketReadyRead()
     long long stamp = parts[0].toLongLong();
     float value = parts[1].toFloat();
     //todo : push the data into a some sort of container
+    ui->customPlot->graph()->addData(this->rowIndex,value);
+
+    QDateTime timestamp;
+    timestamp.setTime_t(stamp);
+    //todo : extend text ticker to allow better memory allocation, as the used method is keeping allocating and only using 10
+    textTicker->addTick(this->rowIndex,timestamp.toString(Qt::SystemLocaleShortDate));
+
+    if (ui->customPlot->graph()->dataCount() >=11)
+        {
+
+            ui->customPlot->xAxis->setRange(ui->customPlot->xAxis->range().lower+1, ui->customPlot->xAxis->range().upper+1);
+            ui->customPlot->graph()->data()->removeBefore(ui->customPlot->xAxis->range().lower);
+        }
+    ui->customPlot->replot();
 
     qDebug() << stamp <<" : "<<value <<endl;
+    this->rowIndex++;
 
 }
 

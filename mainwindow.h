@@ -3,7 +3,8 @@
 
 #include <QMainWindow>
 #include <QTcpSocket>
-
+#include "qcustomplot.h"
+#include <QSharedPointer>
 namespace Ui
 {
 class MainWindow;
@@ -34,6 +35,9 @@ private:
 
     // The first row that the server will start sending, indexing starts from 1
     unsigned long long rowIndex;
+
+    QSharedPointer<QCPAxisTickerText> textTicker = QSharedPointer<QCPAxisTickerText> (new QCPAxisTickerText);
+
 };
 
 #endif // MAINWINDOW_H
